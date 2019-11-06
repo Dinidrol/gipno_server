@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Компоненты Vue.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="/css/reset.css">
+    <style>
+        .game{
+            margin: 5px;
+            border-radius: 0.7em;
+            background-color: #e5e5e5;
+            padding: 5px 20px;
+        }
+        .tips_list{
+            margin: 5px 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <button @click="startGame">Start Game</button>
+        <button @click="skip">Skip Game</button>
+        <button @click="pause">Pause Game</button>
+        <ul class="game">
+            <li v-for = "game in games_room.stage" class="game_list">
+                <group :name_stage ="game.name" :order_stage="game.order_game" :current_stage="games_room.stage_order" >
+                    <ul class="tips_list">
+                        <li v-for = "name in game.tips"><timer :text="name.text" :time="name.time" :statustimer="name.work_time" :idtimer="name.id" :ident_group="game.order_game"></timer></li>
+                    </ul>
+                </group>
+            </li>
+        </ul>
+
+        <pre>{{ $data }}</pre>
+    </div>
+
+
+
+    <script src="https://unpkg.com/vue"></script>
+    <script>
+        var games_room = {
+            stage: [{
+                    name: "Emergensy",
+                    tips: [{
+                            text: "Выставить крутилки",
+                            time: '00:05',
+                            id: 1,
+                            work_time: false
+                        },
+                        {
+                            text: "Выпить 100 грамм",
+                            time: '00:05',
+                            id: 2,
+                            work_time: false
+                        },
+                        {
+                            text: "Выпить 150 грамм",
+                            time: '00:05',
+                            id: 3,
+                            work_time: false
+                        },
+                        {
+                            text: "Выпить 200 грамм",
+                            time: '00:05',
+                            id: 4,
+                            work_time: false
+                        }
+                    ],
+                    order_game: 1,
+                    group_stage: false
+                },
+                {
+                    name: "Emergensy",
+                    tips: [{
+                            text: "horosho",
+                            time: '00:05',
+                            id: 1,
+                            work_time: false
+                        },
+                        {
+                            text: "horosho",
+                            time: '00:05',
+                            id: 2,
+                            work_time: false
+                        },
+                        {
+                            text: "horosho",
+                            time: '00:05',
+                            id: 3,
+                            work_time: false
+                        },
+                        {
+                            text: "horosho",
+                            time: '00:05',
+                            id: 4,
+                            work_time: false
+                        }
+                    ],
+                    order_game: 2,
+                    group_stage: false
+                },
+                {
+                    name: "Emergensy",
+                    tips: [{
+                            text: "horosho",
+                            time: '00:05',
+                            id: 1
+                        },
+                        {
+                            text: "horosho",
+                            time: '00:05',
+                            id: 2
+                        },
+                        {
+                            text: "horosho",
+                            time: '00:05',
+                            id: 3
+                        },
+                        {
+                            text: "horosho",
+                            time: '00:05',
+                            id: 4
+                        }
+                    ],
+                    order_game: 3,
+                    group_stage: false
+                }
+            ],
+            stage_order: 1
+        }
+        
+        Vue.component('timer', {
+            template: `
+            <div>
+                <span>Текст подсказки: {{ timeTimer }} Время срабатывания: {{ text }}
+                    <button @click="dropOnScreen">Send Tips</button>
+                    <button @click="startTimer">Start</button>
+                </span>
+            </div>
+            `,         
+            props: {
+                text:{
+                    type: String,
+                    default:"ERROR"
+                },
+                time:{
+                    type: String,
+                    default: "12:32"
+                },
+                interval: {
+                    type: Number,
+                    default: 1
+                },
+                statustimer: {
+                    type: Boolean,
+                    default: false
+                },
+                idtimer: {
+                    type: Number,
+                    default: -1
+                },
+                ident_group: {
+                    type: Number,
+                    default: -1
+                }
+            },   
+            data(){
+                return {
+                    timer: null,
+                    timeTimer: this.convertTime(this.time),
+                }
+            },
+            methods: {
+                dropOnScreen(){
+                    console.log(this.text)
+                },
+                convertTime(ms){
+                    let a = ms.split(':')
+                    return ((a[0]*60)+(+a[1]))
+                },
+                startTimer(){
+                    this.timer = setInterval(this.onMutchTimer, this.interval*1000)
+                },
+                onMutchTimer(){
+                    this.timeTimer = this.timeTimer -= this.interval
+                    if(this.timeTimer <= 0){
+                        clearInterval(this.timer)
+                        console.log(this.text)
+                        this.timeTimer = 0,
+                        this.$root.$emit('statusTimer', { id:this.idtimer, groop: this.ident_group, status: "true"})
+                    }
+                },
+                skipTimer(){
+                    clearInterval(this.timer)
+                }
+            },
+            mounted: function() {
+                this.$root.$on('startTimer', (data)=>{
+                    if(data.current_timer == this.idtimer && data.current_stage == this.ident_group){
+                        this.startTimer()
+                    }
+                })
+                this.$root.$on('stopTimer', (data)=>{ 
+                    if(this.idtimer == data.current_timer && this.ident_group == data.current_groop){
+                        this.skipTimer()
+                    } else if(this.ident_group == data.current_groop){
+                        this.skipTimer()
+                    }
+                })
+            }    
+        })
+        
+        Vue.component('group',{
+            template: `
+            <div>
+                <p>{{ name_stage }}</p>
+                <slot></slot>
+            </div>
+            `,
+            props: {
+                name_stage:{
+                    type: String,
+                    default: 'ERROR'
+                },
+                order_stage: {
+                    type: Number,
+                    default: -1
+                },
+                current_stage: {
+                    type: Number,
+                    default: -1
+                },
+                stage_game: {
+                    type: Boolean,
+                    default: false
+                }
+            },
+            data(){
+                return{
+                    count_timer: 1  
+                }
+            },
+            methods: {
+                startNextTimer(){
+                    this.$root.$emit('startTimer',{ current_timer: this.count_timer, current_stage: this.order_stage })
+                }
+            },
+            mounted() {
+                this.$root.$on('startGame', (data)=>{
+                    if(data.groop_stage == this.order_stage && data.game_status == true ){
+                        this.$root.$emit('startTimer',{ current_timer: this.count_timer, current_stage: this.order_stage })
+                    }
+                }),
+                this.$root.$on('statusTimer', (data)=>{
+                    if(data.groop == this.order_stage && this.count_timer == data.id){
+                        this.count_timer +=1
+                        this.startNextTimer()
+                        if(this.count_timer == 5) {
+                            this.$root.$emit('WorkGroup', { group_stage: this.order_stage })
+                        }
+                    }
+                }),
+                this.$root.$on('skipGroup', (data)=>{
+                    if(this.order_stage == data.skip_group){
+                        this.$root.$emit('stopTimer', { current_groop: this.current_stage })
+                    } 
+                })     
+            }
+        })
+
+        var app = new Vue({
+            el: '#app',
+            data: {
+                games_room: {},
+                data: null
+            },
+            created: function () {
+                this.games_room = games_room
+                this.$root.$on('WorkGroup', (data)=>{
+                    if(this.games_room.stage_order == data.group_stage) {
+                        this.games_room.stage_order +=1;
+                        this.$root.$emit('startGame', { game_status: true, groop_stage: this.games_room.stage_order })
+                    }
+                })
+            },
+            methods:{
+                startGame(){
+                    this.$root.$emit('startGame', { game_status: true, groop_stage: this.games_room.stage_order })
+                },
+                skip(){
+                    this.$root.$emit('skipGroup', { skip_group: this.games_room.stage_order})
+                    this.games_room.stage_order += 1
+                    this.data = this.games_room.stage_order
+                    this.$root.$emit('startGame', { game_status: true, groop_stage: this.games_room.stage_order })
+                },
+                nextGroup(){
+
+                },
+                pause(){
+                    console.log('Pause Game')
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
