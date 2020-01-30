@@ -310,9 +310,6 @@ client.on('message', function (topic, message) {
         }
     }
 
-
-
-
     //Connected Node-Modules
     if (topic.toString() === '/IdentRoom1/Connected') {
         if (message.toString() === 'true') {
@@ -429,9 +426,64 @@ io.on('connection', function (socket) {
         const msg = data.data.toString();
         console.log(msg);
     })
+    
     socket.on('model-connect', (data)=>{
         console.log(data)
     })
+
+    socket.on('skip-stage', (data)=>{
+        console.log(data.stage)
+        if(data.stage == 'ident-1')
+        {
+            client.publish('/TipsWebDisplay/Actions', 'RFID-true') 
+        } 
+        else if (data.stage == 'button-poster')
+        {
+            client.publish('/IdentRoom1/Actions', 'TUG-true')
+        }
+        else if (data.stage == 'ident-2')
+        {
+            client.publish('/IdentRoom1/Actions', 'POSTER-true')
+        }
+        else if (data.stage == 'tubes')
+        {
+            client.publish('/IdentRoom1/Actions', 'IDENT-true')
+        }
+        else if (data.stage == 'ident-3')
+        {
+            client.publish('/Cabinet/Actions', 'TEST-true')
+        }
+        else if (data.stage == 'ident-4')
+        {
+            client.publish('/Cabinet/Actions', 'IDENT-true')
+        }
+        else if (data.stage == 'togle')
+        {
+            client.publish('/Cabinet/Actions', 'TOG-true')
+        }
+
+        else if (data.stage == 'noise')
+        {
+            client.publish('/Applause/Actions', 'NOISE-true')
+        }
+        else if (data.stage == 'coin')
+        {
+            client.publish('/Volftar/Actions', 'COIN-true')
+        }
+        else if (data.stage == 'rotation')
+        {
+            client.publish('/Volftar/Actions', 'ROTATED-true')
+        }
+        else if (data.stage == 'magic-cabinet')
+        {
+            client.publish('/MagicianCabinet/Actions', 'PLAY-true')
+        }
+        else if (data.stage == 'tobi')
+        {
+            client.publish('/Tobi/Actions', 'HALL-true')
+        }
+    })
+
     socket.on('disconnect', () => {
         console.log(`user ${socket.id} disconnected from Socket IO. Reset All veribles`)
         GameStatus = false
