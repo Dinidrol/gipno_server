@@ -15,7 +15,7 @@
   "dependencies": {
     "body-parser": "^1.18.3",
     "gpio": "^0.2.10",
-    "mongodb": "^2.2.20",
+    "mongodb": "^3.6.1",
     "mplayer": "^2.1.0",
     "node-cmd": "^3.0.0",
     "node-cmd-promise": "^1.0.0",
